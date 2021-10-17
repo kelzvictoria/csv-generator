@@ -1,0 +1,48 @@
+<div class="main row container calculate-pensions">
+  <div class="wrapper outs-docs">
+    <header>Outstanding Docs File Uploader</header>
+    <form id="download-csv-form" action="#">
+      <input
+        class="file-input"
+        type="file"
+        enctype="multipart/form-data"
+        name="filetoupload"
+        hidden
+      />
+      <i class="fas fa-cloud-upload-alt"></i>
+      <p>Browse File to Upload</p>
+      <section class="progress-area"></section>
+      <section class="uploaded-area"></section>
+      <div class="btn-download-div">
+        <a
+          href="generated-csv/generated-bulk-upload-csv.csv"
+          class="btn btn-primary btn-download download"
+          style="display: none"
+          id="download-link"
+        >
+          Download CSV
+        </a>
+        <!-- <button id="download-csv" class="btn btn-primary btn-download" style="display: none;" disabled="true">
+             Download CSV File
+         </button>` -->
+      </div>
+
+      <div id="message" style="display: none">
+        <div id="message-screen-mask" class="ui-widget-overlay ui-front"></div>
+        <div
+          id="message-text"
+          class="
+            ui-dialog
+            ui-widget
+            ui-widget-content
+            ui-corner-all
+            ui-front
+            ui-draggable
+            ui-resizable
+            waitmessage
+          "
+        ></div>
+      </div>
+    </form>
+  </div>
+</div>

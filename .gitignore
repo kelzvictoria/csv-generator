@@ -1,0 +1,24 @@
+node_modules
+
+# Logs
+*.log
+
+# Coverage
+/.nyc_output
+/coverage
+
+/.vscode
+
+/.DS_Store
+src/.DS_Store
+
+profiles/complete/*
+profiles/incomplete/*
+
+.env
+views/landing/images/Thumbs.db
+
+views/_partials/format.html
+
+trash.txt
+logs.txt

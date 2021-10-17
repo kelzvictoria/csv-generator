@@ -1,0 +1,46 @@
+stages:
+  - build
+  - test
+  - review
+  - release
+  - deliver
+variables:
+  CONTAINER_IMAGE: $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+
+# Hidden anchor script to prevent repetiton of docker commands
+.docker_template: &docker_common_definitions
+  image: docker:git
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+
+deliver-staging:
+  <<: *docker_common_definitions
+  stage: review
+  script:
+    - docker build -t $CONTAINER_IMAGE:$CI_COMMIT_REF_NAME .
+    - docker push $CONTAINER_IMAGE:$CI_COMMIT_REF_NAME
+  only:
+    # SemVer-compliant rc builds (with no metadata)
+    #    e.g v1.0.0-rc, 1.0.1-rc.1
+    - /^v?\d+\.\d+\.\d+(?:-rc(?:(?:\.[a-zA-Z0-9]+)*)?)$/
+  except:
+    - master
+
+deliver-release:
+  <<: *docker_common_definitions
+  stage: deliver
+  script:
+    - mkdir target/unpacked && tar -zxf target/$PROJECT_NAME-assembly.tar.gz -C target/unpacked
+    - docker build -t $CONTAINER_IMAGE:latest
+      -t $CONTAINER_IMAGE:$CI_COMMIT_REF_NAME
+      .
+    - docker push $CONTAINER_IMAGE:latest
+    - docker push $CONTAINER_IMAGE:$CI_COMMIT_REF_NAME
+  only:
+    # SemVer-compliant final release builds
+    #    e.g 1.0.0, v1.0.1
+    - /^v?\d+\.\d+\.\d+$/
+  except:
+    - /^(?!.*(master|v?\d+\.\d+\.\d+)$).*$/
