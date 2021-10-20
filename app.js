@@ -13,6 +13,10 @@ var stringify = require("csv-stringify");
 
 const auth = require("./auth");
 const utils = require("./app-utils");
+
+var session = require("express-session");
+var flash = require("connect-flash");
+
 const {
   jsonFormat,
   getProofOfAddressType,
@@ -66,11 +70,13 @@ let generated_csv_path = path.join(
   "/generated-bulk-upload-csv.csv"
 );
 
+let err_path = path.join(staticDataPath, "errors.js");
+
 const app = express();
 const router = express.Router();
 
 let demoRealmToken, stanbicRealmToken;
-let fileUploadErrorArr = [];
+let fileUploadErrorArr;
 
 router.use(function (req, res, next) {
   next();
@@ -84,6 +90,18 @@ app.use(
   })
 );
 
+app.use(
+  session({
+    secret: "secret",
+    cookie: {
+      maxAge: 20000,
+    },
+    saveUninitialized: true,
+    resave: true,
+  })
+);
+
+app.use(flash());
 app.use(express.static("public"));
 
 // Handler for parsing cookies
@@ -127,16 +145,25 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
   await empty(path.join(staticDataPath, "generated-csv"), false, (o) => {
     if (o.error) console.error(o.error);
   });
+
+  fs.exists(err_path, function (exists) {
+    if (exists) {
+      fs.unlinkSync(err_path);
+    }
+  });
+
   res.render(viewDataPath + "/index", {
     appPath: appPath,
     pageName: "outstandingdocs",
     csrfToken: csrfTokenManager.create(csrfSecret),
+    message: req.flash("message"),
   });
 });
 
-router.post("/upload-file", async (req) => {
+router.post("/upload-file", async (req, res) => {
   //https://www.section.io/engineering-education/uploading-files-using-formidable-nodejs/
   var form = new formidable.IncomingForm();
+  fileUploadErrorArr = [];
 
   const buildErrObj = (pin, error) => {
     fileUploadErrorArr.push({
@@ -146,18 +173,28 @@ router.post("/upload-file", async (req) => {
   };
 
   const getCSVCellValue = async (col, pin, uploaded_data, user_details_obj) => {
-    let file_path = uploaded_data.filter((u) => u.name.includes(col))[0].path;
-
-    let cdn_url, val;
-
-    if (file_path) {
+    let file = uploaded_data.filter((u) => u.name.includes(col))[0];
+    let cdn_url, val, value_from_user_details_obj;
+    if (file) {
+      let file_path = file.path;
       cdn_url = await getCDNURL(file_path, demoRealmToken);
-      console.log("CDN URL received for " + pin + ": ", cdn_url);
-      val = cdn_url
-        ? cdn_url
-        : user_details_obj.media.identity.passport_photo_source_url.toLowerCase();
-      return val;
+
+      if (cdn_url) {
+        console.log("CDN URL received for " + pin + ": ", cdn_url);
+        val = cdn_url;
+        return val;
+      } else {
+        buildErrObj(pin, col);
+        return;
+      }
     } else {
+      // value_from_user_details_obj =
+      //   user_details_obj.media.identity.passport_photo_source_url.toLowerCase();
+
+      // if (value_from_user_details_obj) {
+      //   val = value_from_user_details_obj;
+      //   return val;
+      // }
       buildErrObj(pin, col);
       return;
     }
@@ -181,6 +218,8 @@ router.post("/upload-file", async (req) => {
         ? tree.children.filter((c) => c.name !== "__MACOSX")[0]
         : undefined;
       let folder_content = folder ? folder.children : undefined;
+      console.log("folder_content", folder_content);
+
       if (folder_content) {
         let PINS_Arr = folder.children.map((c) => c.name);
 
@@ -204,39 +243,59 @@ router.post("/upload-file", async (req) => {
 
                   switch (key) {
                     case "media.identity.passport_photo_source_url":
-                      val = await getCSVCellValue(
-                        "passport",
-                        PINS_Arr[i],
-                        uploaded_data,
-                        api_data
-                      );
+                      let file = uploaded_data.filter((u) =>
+                        u.name.includes("passport_photo")
+                      )[0];
+                      val = file
+                        ? await getCSVCellValue(
+                            "passport_photo",
+                            PINS_Arr[i],
+                            uploaded_data,
+                            api_data
+                          )
+                        : api_data.media.identity.passport_photo_source_url.toLowerCase();
                       break;
 
                     case "media.documentation.employment_letter_source_url":
-                      val = await getCSVCellValue(
-                        "employment_letter",
-                        PINS_Arr[i],
-                        uploaded_data,
-                        api_data
-                      );
+                      let empl = uploaded_data.filter((u) =>
+                        u.name.includes("employment_letter")
+                      )[0];
+                      val = empl
+                        ? await getCSVCellValue(
+                            "employment_letter",
+                            PINS_Arr[i],
+                            uploaded_data,
+                            api_data
+                          )
+                        : api_data.media.documentation.employment_letter_source_url.toLowerCase();
                       break;
 
                     case "media.documentation.official_id_source_url":
-                      val = await getCSVCellValue(
-                        "official_id",
-                        PINS_Arr[i],
-                        uploaded_data,
-                        api_data
-                      );
+                      let id = uploaded_data.filter((u) =>
+                        u.name.includes("official_id")
+                      )[0];
+                      val = id
+                        ? await getCSVCellValue(
+                            "official_id",
+                            PINS_Arr[i],
+                            uploaded_data,
+                            api_data
+                          )
+                        : api_data.media.documentation.official_id_source_url.toLowerCase();
                       break;
 
                     case "media.documentation.proof_of_address_source_url":
-                      val = await getCSVCellValue(
-                        "proof_of_address",
-                        PINS_Arr[i],
-                        uploaded_data,
-                        api_data
-                      );
+                      let poa = uploaded_data.filter((u) =>
+                        u.name.includes("proof_of_address")
+                      )[0];
+                      val = poa
+                        ? await getCSVCellValue(
+                            "proof_of_address",
+                            PINS_Arr[i],
+                            uploaded_data,
+                            api_data
+                          )
+                        : api_data.media.documentation.proof_of_address_source_url.toLowerCase();
                       break;
 
                     case "employer.name":
@@ -272,12 +331,17 @@ router.post("/upload-file", async (req) => {
                       break;
 
                     case "media.documentation.nin_enrolment_slip_source_url":
-                      val = await getCSVCellValue(
-                        "nin_enrolment",
-                        PINS_Arr[i],
-                        uploaded_data,
-                        api_data
-                      );
+                      let nin = uploaded_data.filter((u) =>
+                        u.name.includes("nin_enrolment")
+                      )[0];
+                      val = nin
+                        ? await getCSVCellValue(
+                            "nin_enrolment",
+                            PINS_Arr[i],
+                            uploaded_data,
+                            api_data
+                          )
+                        : api_data.media.documentation.nin_enrolment_slip_source_url.toLowerCase();
                       break;
 
                     case "param.proof_of_address_type":
@@ -288,9 +352,15 @@ router.post("/upload-file", async (req) => {
                       let address_type;
 
                       if (proof_of_address_file_name) {
-                        address_type = await getProofOfAddressType(
+                        console.log(
+                          "proof_of_address_file_name",
                           proof_of_address_file_name
-                        ).id;
+                        );
+                        address_type = proof_of_address_file_name.split("-")[1]
+                          ? await getProofOfAddressType(
+                              proof_of_address_file_name
+                            ).id
+                          : "";
                       } else {
                         buildErrObj(PINS_Arr[i], "proof of address type");
                       }
@@ -308,7 +378,9 @@ router.post("/upload-file", async (req) => {
                       let id_type;
 
                       if (file_name) {
-                        id_type = await getProofOfIdType(file_name).id;
+                        id_type = file_name.split("-")[1]
+                          ? await getProofOfIdType(file_name).id
+                          : "";
                       } else {
                         buildErrObj(PINS_Arr[i], "proof of id type");
                       }
@@ -355,14 +427,30 @@ router.post("/upload-file", async (req) => {
 
         //https://stackabuse.com/reading-and-writing-csv-files-in-nodejs-with-node-csv/
         if (fileUploadErrorArr.length) {
-          console.log(
-            "CSV Generation Error: ",
-            JSON.stringify(fileUploadErrorArr)
+          // console.log(
+          //   "CSV Generation Error: ",
+          //   JSON.stringify(fileUploadErrorArr)
+          // );
+          let errors = "";
+
+          fileUploadErrorArr.map((f) => {
+            errors += f.error + " for " + f.pin + " not provided. ";
+          });
+
+          console.log("errors", errors);
+          fs.writeFile(
+            err_path,
+            errors,
+            // "let errors = " +
+            //   JSON.stringify(fileUploadErrorArr)
+            (err) => {
+              err && console.log("err", err);
+            }
           );
         } else {
           stringify(csvJSON, { header: true }, (err, output) => {
             fs.writeFile(generated_csv_path, output, (err) => {
-              err ?? console.log("err", err);
+              err && console.log("err", err);
             });
           });
           console.log("done with loop; csv file generated");

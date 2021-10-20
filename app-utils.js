@@ -143,7 +143,7 @@ const getCDNURL = async (file_path, token) => {
       url = res.data[0].url;
     })
     .catch((err) => {
-      console.log("POST Error: ", err.response);
+      console.log("POST Error: ", err);
     });
 
   return url;

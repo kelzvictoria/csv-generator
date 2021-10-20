@@ -174,3 +174,54 @@ section .row i {
 .display--none {
   display: none !important;
 }
+
+#message-text1 {
+  background: #2ecc71;
+}
+
+#message-text2 {
+  /* display: flex !important; */
+  background: #f1c40f;
+}
+
+#message-text3 {
+  /* display: flex !important; */
+  background: #e74c3c;
+}
+
+#message-text1,
+#message-text2,
+#message-text3 {
+  color: #fff;
+  padding: 5px 15px;
+  margin-bottom: 0.5rem;
+  border-color: transparent !important;
+}
+
+.fa-times {
+  font-size: 25px !important;
+}
+
+#cancel-btn {
+  background: none;
+  border: none;
+  display: flex;
+  justify-content: center;
+}
+
+.btnCancel {
+  color: #a29b8f !important;
+}
+
+.btnCancel:hover {
+  background: #e74c3c;
+  color: #fff !important;
+}
+
+.refresh-page {
+  margin-top: 5px;
+}
+
+#success {
+  background-color: red !important;
+}

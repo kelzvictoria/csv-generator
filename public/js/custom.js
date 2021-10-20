@@ -11,9 +11,12 @@ const form = document.querySelector("form"),
   uploadIcon = document.querySelector(".fa-cloud-upload-alt");
 (downloadBtn = document.querySelector("#download-csv")),
   (downloadLink = document.querySelector("#download-link")),
-  (downloadBtnDiv = document.querySelector(".btn-download-div"));
+  (downloadBtnDiv = document.querySelector(".btn-download-div")),
+  (refreshBtn = document.querySelector("#refresh")),
+  (refreshDiv = document.querySelector(".refresh-page"));
 
 let is_file_uploaded = false;
+let is_network_error = false;
 
 let timer = 5000;
 
@@ -21,26 +24,41 @@ function checkForCSV() {
   let csvFileExists = FileExists(
     "../generated-csv/generated-bulk-upload-csv.csv"
   );
+
+  let errorsFileExist = FileExists("../errors.js");
+
   fileExists = csvFileExists ? true : false;
-  console.log("fileExisits", fileExists);
+  errorsExists = errorsFileExist ? true : false;
+
+  console.log("fileExisits", fileExists, "errorsExists", errorsExists);
 
   if (fileExists) {
     HideMessage();
     clearInterval(interval);
+  }
+
+  if (errorsExists || is_network_error) {
+    //console.log("error exists");
+    ShowErrors();
   }
 }
 
 function FileExists(urlToFile) {
   var xhr = new XMLHttpRequest();
   xhr.open("HEAD", urlToFile, false);
-  xhr.send();
+  try {
+    xhr.send();
 
-  if (xhr.status == "404") {
-    console.log("File doesn't exist");
-    return false;
-  } else {
-    console.log("File exists");
-    return true;
+    if (xhr.status == "404") {
+      console.log("File doesn't exist");
+      return false;
+    } else {
+      console.log("File exists");
+      return true;
+    }
+  } catch (err) {
+    console.log("err", err);
+    is_network_error = true;
   }
 }
 
@@ -64,6 +82,11 @@ p.addEventListener("click", () => {
   fileInput.click();
 });
 
+refreshBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  location.reload();
+});
+
 fileInput.onchange = ({ target }) => {
   let file = target.files[0];
   if (file) {
@@ -76,24 +99,26 @@ fileInput.onchange = ({ target }) => {
   }
 };
 
-let xhr = new XMLHttpRequest();
+// let xhr = new XMLHttpRequest();
 
-let resp = "";
+// let resp = "";
+// xhr.onreadystatechange = () => {
 
-xhr.onreadystatechange = () => {
-  if (xhr.readyState == 4 && xhr.status == 200) {
-    resp = xhr.responseText;
-  }
-};
+//   if (xhr.readyState == 4 && xhr.status == 200) {
+//     resp = xhr.responseText;
+//   }
+// };
 
 let upload_file_path = `//${APP_PATH}/tools-test/upload-file`;
-let download_file_path = `//${APP_PATH}/tools-test/download-csv`;
+//let download_file_path = `//${APP_PATH}/tools-test/download-csv`;
 
 function uploadFile(name, file) {
   console.log("changed input");
 
   var formData = new FormData();
   formData.set("file", file);
+
+  var xhr = new XMLHttpRequest();
 
   xhr.open("POST", upload_file_path, true);
   xhr.upload.addEventListener("progress", ({ loaded, total }) => {
@@ -128,15 +153,16 @@ function uploadFile(name, file) {
                                 <span class="size">${fileSize}</span>
                               </div>
                             </div>
-                            <i id="fa-times" class="fas fa-times"></i>
                           </li>`;
       uploadedArea.classList.remove("onprogress");
       uploadedArea.innerHTML = uploadedHTML;
-      const cancelButton = document.querySelector(".fa-times");
+      const cancelButton =
+        document.querySelector(".btnCancel"); /*(".fa-times")*/
       cancelButton.addEventListener("click", () => {
         console.log("clicked cancel");
         form.reset();
         uploadedArea.innerHTML = "";
+        xhr.abort();
         location.reload();
       });
       toggleIsFileUploaded();
@@ -149,41 +175,65 @@ function uploadFile(name, file) {
   //alert(resp);
 }
 
-function downloadCSV(event) {
-  event.preventDefault();
-
-  var data = {};
-  $.ajax({
-    type: "POST",
-    url: download_file_path, //"./download-csv",
-    data: data,
-  });
-}
-
-var downloadCSVForm = document.getElementById("download-csv-form");
-if (downloadCSVForm) {
-  downloadCSVForm.addEventListener("submit", downloadCSV);
-}
-
-$(function () {
-  $(".download").click(function () {
-    ShowDownloadMessage();
-  });
-});
-
 let interval = null;
 
+function readTextFile(file) {
+  var rawFile = new XMLHttpRequest();
+  var allText;
+  rawFile.open("GET", file, false);
+  rawFile.onreadystatechange = function () {
+    if (rawFile.readyState === 4) {
+      if (rawFile.status === 200 || rawFile.status == 0) {
+        allText = rawFile.responseText;
+        // alert(allText);
+      }
+    }
+  };
+  rawFile.send(null);
+  return allText;
+}
+
+function ShowErrors() {
+  $("#message-text2").hide();
+
+  if (is_network_error) {
+    $("#message-text3").text("A network error has occured...");
+  }
+  if (FileExists("../errors.js")) {
+    let errors = readTextFile("../errors.js");
+    console.log("errors", errors);
+    $("#message-text3").text(errors);
+  }
+
+  $("#message-text3").show();
+  clearInterval(interval);
+  $(".refresh-page").show();
+}
+
+function buildErrorMsg() {}
+
+function HideErrors() {}
+
 function ShowMessage() {
-  $("#message-text").text("CSV file is being generated...");
+  $("#message-text1").text("Zip file has been uploaded successfully.");
+  $("#message-text2").text("Please wait while CSV file is being generated...");
   $("#message").show();
+  $("#message-text2").hide();
   $("#download-link").hide();
   interval = setInterval(function () {
+    $("#message-text1").hide();
+    $("#message-text2").show();
     checkForCSV();
   }, timer);
 }
 
 function HideMessage() {
-  $("#message").hide();
+  //$("#message").hide();
+  $("#message-text1").show();
+  $("#message-text2").hide();
+  $("#message-text1").text("CSV File is ready for download.");
 
+  $("#message").hide();
   $("#download-link").show();
+  $(".refresh-page").show();
 }
