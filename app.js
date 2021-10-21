@@ -131,6 +131,7 @@ app.get(appPath, function (req, res) {
 });
 
 app.get(appPath + "/outstanding-docs", async (req, res) => {
+  //https://formelo.stanbicibtcpension.com/oauth/authorize/?client_id=INSERT_CLIENT_ID_HERE&response_type=token&redirect_uri=http://localhost:8080/tools-test/outstanding-docs/progress&scope=*.*&state=
   demoRealmToken = await auth.demoRealmToken;
   stanbicRealmToken = await auth.stanbicRealmToken;
 
@@ -156,7 +157,14 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
     appPath: appPath,
     pageName: "outstandingdocs",
     csrfToken: csrfTokenManager.create(csrfSecret),
-    message: req.flash("message"),
+  });
+});
+
+app.get(appPath + "/login", async (req, res) => {
+  res.render(viewDataPath + "/login", {
+    appPath: appPath,
+    pageName: "auth",
+    csrfToken: csrfTokenManager.create(csrfSecret),
   });
 });
 

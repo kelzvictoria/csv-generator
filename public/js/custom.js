@@ -237,3 +237,18 @@ function HideMessage() {
   $("#download-link").show();
   $(".refresh-page").show();
 }
+
+(function () {
+  "use strict";
+  var timerHandle = setInterval(function () {
+    if (window.location.href.indexOf("access_token") !== -1) {
+      var access_token = window.location.href
+        .match(/#access_token=(.*)$/)[1]
+        .split("&")[0];
+      clearInterval(timerHandle);
+      // USE THE TOKEN...
+      console.log("token", access_token);
+    }
+  }, 3000);
+  return true;
+})();

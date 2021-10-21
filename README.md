@@ -1,6 +1,6 @@
 # Overview
 
-This app provides a Bulk Import Tool for Outstanding Docs
+This app provides a Bulk Import CSV Generator for Outstanding Docs
 
 ## Environment Variables
 
