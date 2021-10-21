@@ -141,6 +141,13 @@ section .details span {
   background-color: #0089ff;
 }
 
+#btn-auth {
+  background-color: #0089ff;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+}
+
 .btn-download-div {
   display: flex;
   justify-content: center;

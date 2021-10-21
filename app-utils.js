@@ -165,7 +165,16 @@ const getAPIDATA = async (pin, token) => {
       data = res.data[0];
     })
     .catch((err) => {
-      console.log("GET Error: ", err);
+      console.log("GET Error: ", err.response.status, err);
+      if (err.response.status === 401) {
+        console.log("Auth Error");
+        data = "Error: Invalid Access Token";
+      }
+
+      if (err.response.status === 404) {
+        console.log("404");
+        data = "Error: Record not found";
+      }
     });
 
   return data;

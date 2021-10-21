@@ -3,6 +3,8 @@ const directory = "../uploadedFolder";
 const APP_PORT = 8080;
 const APP_PATH = "localhost:" + APP_PORT;
 
+let stanbic_token;
+
 const form = document.querySelector("form"),
   fileInput = document.querySelector(".file-input"),
   progressArea = document.querySelector(".progress-area"),
@@ -116,7 +118,7 @@ function uploadFile(name, file) {
   console.log("changed input");
 
   var formData = new FormData();
-  formData.set("file", file);
+  formData.append("file", file);
 
   var xhr = new XMLHttpRequest();
 
@@ -170,6 +172,9 @@ function uploadFile(name, file) {
       toggleDisplayUploadBtn();
     }
   });
+
+  //let token = localStorage.getItem("access_token");
+  formData.append("access_token", stanbic_token);
 
   xhr.send(formData);
   //alert(resp);
@@ -239,7 +244,8 @@ function HideMessage() {
 }
 
 (function () {
-  "use strict";
+  //"use strict";
+  let local_token = localStorage.getItem("access_token");
   var timerHandle = setInterval(function () {
     if (window.location.href.indexOf("access_token") !== -1) {
       var access_token = window.location.href
@@ -247,7 +253,20 @@ function HideMessage() {
         .split("&")[0];
       clearInterval(timerHandle);
       // USE THE TOKEN...
-      console.log("token", access_token);
+      // console.log("token", access_token);
+      localStorage.setItem("access_token", access_token);
+
+      console.log("local_token", local_token);
+      if (access_token) {
+        stanbic_token = access_token;
+      }
+    } else {
+      if (local_token) {
+        stanbic_token = local_token;
+      } else {
+        window.location.href =
+          "http://localhost:8080/tools-test/outstanding-docs";
+      }
     }
   }, 3000);
   return true;

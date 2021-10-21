@@ -2,96 +2,12 @@
   <div class="wrapper outs-docs">
     <header>Bulk Import CSV File Generator</header>
     <form id="download-csv-form" action="#">
-      <div id="message" style="display: none">
-        <div id="message-screen-mask" class="ui-widget-overlay ui-front"></div>
-        <div
-          id="message-text1"
-          class="
-            ui-dialog
-            ui-widget
-            ui-widget-content
-            ui-corner-all
-            ui-front
-            ui-draggable
-            ui-resizable
-            waitmessage
-          "
-        ></div>
-        <div
-          id="message-text2"
-          class="
-            ui-dialog
-            ui-widget
-            ui-widget-content
-            ui-corner-all
-            ui-front
-            ui-draggable
-            ui-resizable
-            waitmessage
-          "
-        ></div>
-        <div
-          id="message-text3"
-          class="
-            ui-dialog
-            ui-widget
-            ui-widget-content
-            ui-corner-all
-            ui-front
-            ui-draggable
-            ui-resizable
-            waitmessage
-          "
-          style="display: none"
-        ></div>
-        <div
-          class="
-            ui-dialog
-            ui-widget
-            ui-widget-content
-            ui-corner-all
-            ui-front
-            ui-draggable
-            ui-resizable
-            waitmessage
-          "
-          id="cancel-btn"
-        >
-          <!-- <i id="fa-times" class="fas fa-times"></i> -->
-          <button class="btn btnCancel">Cancel</button>
-        </div>
-      </div>
-      <input
-        class="file-input"
-        type="file"
-        enctype="multipart/form-data"
-        name="filetoupload"
-        accept=".zip"
-        hidden
-      />
-      <i class="fas fa-cloud-upload-alt"></i>
-      <p>Browse File to Upload</p>
-      <section class="progress-area"></section>
-      <section class="uploaded-area"></section>
-      <div class="btn-download-div">
-        <a
-          href="generated-csv/generated-bulk-upload-csv.csv"
-          class="btn btn-primary btn-download download"
-          style="display: none"
-          id="download-link"
-        >
-          Download CSV
-        </a>
-        <!-- <button id="download-csv" class="btn btn-primary btn-download" style="display: none;" disabled="true">
-             Download CSV File
-         </button>` -->
-      </div>
-
-      <div class="refresh-page" style="display: none">
-        <a href="#" id="refresh" style="font-size: 12px">
-          Upload another zip file
-        </a>
-      </div>
+      <!-- <p>Browse File to Upload</p> -->
+      <a
+        id="btn-auth"
+        href="https://formelo.stanbicibtcpension.com/oauth/authorize/?client_id=6518649306807093-ndjx7rpk.api-clients.formelo.stanbicibtcpension.com&response_type=token&redirect_uri=http://localhost:8080/tools-test/progress&scope=*.*&state="
+        >Get Started</a
+      >
     </form>
   </div>
 </div>

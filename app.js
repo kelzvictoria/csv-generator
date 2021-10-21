@@ -132,9 +132,36 @@ app.get(appPath, function (req, res) {
 
 app.get(appPath + "/outstanding-docs", async (req, res) => {
   //https://formelo.stanbicibtcpension.com/oauth/authorize/?client_id=INSERT_CLIENT_ID_HERE&response_type=token&redirect_uri=http://localhost:8080/tools-test/outstanding-docs/progress&scope=*.*&state=
-  demoRealmToken = await auth.demoRealmToken;
-  stanbicRealmToken = await auth.stanbicRealmToken;
 
+  //stanbicRealmToken = await auth.stanbicRealmToken;
+
+  // await empty(zipUploadFolder, false, (o) => {
+  //   if (o.error) console.error(o.error);
+  // });
+
+  // await empty(uploaded_folder_path, false, (o) => {
+  //   if (o.error) console.error(o.error);
+  // });
+
+  // await empty(path.join(staticDataPath, "generated-csv"), false, (o) => {
+  //   if (o.error) console.error(o.error);
+  // });
+
+  // fs.exists(err_path, function (exists) {
+  //   if (exists) {
+  //     fs.unlinkSync(err_path);
+  //   }
+  // });
+
+  res.render(viewDataPath + "/index", {
+    appPath: appPath,
+    pageName: "outstandingdocs",
+    csrfToken: csrfTokenManager.create(csrfSecret),
+  });
+});
+
+app.get(appPath + "/progress", async (req, res) => {
+  demoRealmToken = await auth.demoRealmToken;
   await empty(zipUploadFolder, false, (o) => {
     if (o.error) console.error(o.error);
   });
@@ -152,23 +179,17 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
       fs.unlinkSync(err_path);
     }
   });
-
-  res.render(viewDataPath + "/index", {
+  res.render(viewDataPath + "/progress", {
     appPath: appPath,
-    pageName: "outstandingdocs",
-    csrfToken: csrfTokenManager.create(csrfSecret),
-  });
-});
-
-app.get(appPath + "/login", async (req, res) => {
-  res.render(viewDataPath + "/login", {
-    appPath: appPath,
-    pageName: "auth",
+    pageName: "progress",
     csrfToken: csrfTokenManager.create(csrfSecret),
   });
 });
 
 router.post("/upload-file", async (req, res) => {
+  let stanbic_access_token;
+  let api_data_fetch = [];
+
   //https://www.section.io/engineering-education/uploading-files-using-formidable-nodejs/
   var form = new formidable.IncomingForm();
   fileUploadErrorArr = [];
@@ -211,6 +232,9 @@ router.post("/upload-file", async (req, res) => {
   form.multiples = false;
   form.uploadDir = zipUploadFolder;
   form.parse(req, async function (err, fields, files) {
+    stanbic_access_token = fields.access_token;
+
+    console.log("stanbic_access_token", stanbic_access_token);
     let filePath = files.file.path;
     try {
       await decompress(filePath, "uploadedFolder");
@@ -236,9 +260,24 @@ router.post("/upload-file", async (req, res) => {
         for (let i = 0; i < PINS_Arr.length; i++) {
           if (PINS_Arr[i].substring(0, 3) === "PEN") {
             let final = JSON.stringify(jsonFormat);
-            let api_data = await getAPIDATA(PINS_Arr[i], stanbicRealmToken); //.filter((s) => s.pin === PINS_Arr[i])[0];
+            let api_data = await getAPIDATA(PINS_Arr[i], stanbic_access_token); //.filter((s) => s.pin === PINS_Arr[i])[0];
             console.log("api_data for " + PINS_Arr[i] + ": ", api_data);
-            if (api_data) {
+
+            // if (api_data != "Error: Invalid Access Token")
+            if (api_data == "Error: Invalid Access Token") {
+              api_data_fetch.push({
+                pin: PINS_Arr[i],
+                error:
+                  "The api details of " +
+                  PINS_Arr[i] +
+                  " could not be fetched due to Invalid Access Token",
+              });
+            } else if (api_data == "Error: Record not found") {
+              api_data_fetch.push({
+                pin: PINS_Arr[i],
+                error: "The api details of " + PINS_Arr[i] + " does not exist",
+              });
+            } else {
               api_data["search_pin"] = PINS_Arr[i];
 
               let uploaded_data = folder_content.filter(
@@ -405,8 +444,8 @@ router.post("/upload-file", async (req, res) => {
                     .replace(/\${[A-Za-z0-9_]*}/g, "")
                     .replace(/(\r\n|\n|\r)/gm, " ");
                 }
+                csvJSON.push(JSON.parse(final));
               }
-              csvJSON.push(JSON.parse(final));
             }
           }
         }
@@ -443,6 +482,23 @@ router.post("/upload-file", async (req, res) => {
 
           fileUploadErrorArr.map((f) => {
             errors += f.error + " for " + f.pin + " not provided. ";
+          });
+
+          console.log("errors", errors);
+          fs.writeFile(
+            err_path,
+            errors,
+            // "let errors = " +
+            //   JSON.stringify(fileUploadErrorArr)
+            (err) => {
+              err && console.log("err", err);
+            }
+          );
+        } else if (api_data_fetch.length) {
+          let errors = "";
+
+          api_data_fetch.map((e) => {
+            errors += e.error + ". ";
           });
 
           console.log("errors", errors);
