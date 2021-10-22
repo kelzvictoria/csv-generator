@@ -161,6 +161,14 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
 });
 
 app.get(appPath + "/progress", async (req, res) => {
+  res.render(viewDataPath + "/progress", {
+    appPath: appPath,
+    pageName: "progress",
+    csrfToken: csrfTokenManager.create(csrfSecret),
+  });
+});
+
+app.get(appPath + "/csv-generator", async (req, res) => {
   demoRealmToken = await auth.demoRealmToken;
   await empty(zipUploadFolder, false, (o) => {
     if (o.error) console.error(o.error);
@@ -179,9 +187,9 @@ app.get(appPath + "/progress", async (req, res) => {
       fs.unlinkSync(err_path);
     }
   });
-  res.render(viewDataPath + "/progress", {
+  res.render(viewDataPath + "/csvGenerator", {
     appPath: appPath,
-    pageName: "progress",
+    pageName: "csv-generator",
     csrfToken: csrfTokenManager.create(csrfSecret),
   });
 });

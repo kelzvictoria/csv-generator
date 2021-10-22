@@ -205,7 +205,7 @@ function ShowErrors() {
     $("#message-text3").text("A network error has occured...");
   }
   if (FileExists("../errors.js")) {
-    let errors = readTextFile("../errors.js");
+    let errors = readTextFile("../errors.js").substring(0, 85) + "...";
     console.log("errors", errors);
     $("#message-text3").text(errors);
   }

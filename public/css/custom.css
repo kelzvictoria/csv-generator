@@ -194,6 +194,7 @@ section .row i {
 #message-text3 {
   /* display: flex !important; */
   background: #e74c3c;
+  margin: 0 5px !important;
 }
 
 #message-text1,
@@ -231,4 +232,9 @@ section .row i {
 
 #success {
   background-color: red !important;
+}
+
+.progress {
+  display: flex;
+  justify-content: center;
 }
