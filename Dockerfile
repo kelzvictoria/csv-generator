@@ -7,7 +7,7 @@ COPY package*.json ./
 USER node
 RUN npm install
 COPY --chown=node:node . .
-COPY --chown=node:node ./module-overrides ./node_modules
+#COPY --chown=node:node ./module-overrides ./node_modules
 
 EXPOSE 8080
 CMD [ "node", "app.js"]
