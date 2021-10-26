@@ -49,9 +49,6 @@ const corsOptions = {
 const staticDataPath = __dirname + "/public";
 const viewDataPath = __dirname + "/views/_partials";
 
-let uploaded_folder_path = path.join(__dirname, "uploadedFolder/");
-const zipUploadFolder = path.join(staticDataPath, "files");
-
 let csv_template_path = path.join(
   staticDataPath,
   "bulk-upload-template",
@@ -66,17 +63,18 @@ let duplicated_csv_template_path = path.join(
 
 let generated_csv_path = path.join(
   staticDataPath,
-  "generated-csv",
-  "/generated-bulk-upload-csv.csv"
+  "generated-csv"
+  // "/generated-bulk-upload-csv.csv"
 );
 
-let err_path = path.join(staticDataPath, "errors.js");
+let err_path = path.join(staticDataPath, `errors.json`);
+
+const err_file = require(err_path);
 
 const app = express();
 const router = express.Router();
 
 let demoRealmToken, stanbicRealmToken;
-let fileUploadErrorArr;
 
 router.use(function (req, res, next) {
   next();
@@ -170,7 +168,7 @@ app.get(appPath + "/progress", async (req, res) => {
 
 app.get(appPath + "/csv-generator", async (req, res) => {
   demoRealmToken = await auth.demoRealmToken;
-  await empty(zipUploadFolder, false, (o) => {
+  /* await empty(zipUploadFolder, false, (o) => {
     if (o.error) console.error(o.error);
   });
 
@@ -180,13 +178,13 @@ app.get(appPath + "/csv-generator", async (req, res) => {
 
   await empty(path.join(staticDataPath, "generated-csv"), false, (o) => {
     if (o.error) console.error(o.error);
-  });
+  }); */
 
-  fs.exists(err_path, function (exists) {
+  /* fs.exists(err_path, function (exists) {
     if (exists) {
       fs.unlinkSync(err_path);
     }
-  });
+  }); */
   res.render(viewDataPath + "/csvGenerator", {
     appPath: appPath,
     pageName: "csv-generator",
@@ -195,11 +193,18 @@ app.get(appPath + "/csv-generator", async (req, res) => {
 });
 
 router.post("/upload-file", async (req, res) => {
+  let uploaded_folder_path = path.join(staticDataPath, "uploadedFolder/");
+  let uploadedFolder, zipFile, fileN;
+  const zipUploadFolder = path.join(staticDataPath, "files");
+
+  let fileUploadErrorArr;
+
   let stanbic_access_token;
   let api_data_fetch = [];
 
   //https://www.section.io/engineering-education/uploading-files-using-formidable-nodejs/
   var form = new formidable.IncomingForm();
+  //console.log("form", form);
   fileUploadErrorArr = [];
 
   const buildErrObj = (pin, error) => {
@@ -239,14 +244,71 @@ router.post("/upload-file", async (req, res) => {
 
   form.multiples = false;
   form.uploadDir = zipUploadFolder;
+  //console.log("form", form);
   form.parse(req, async function (err, fields, files) {
     stanbic_access_token = fields.access_token;
 
     console.log("stanbic_access_token", stanbic_access_token);
     let filePath = files.file.path;
+    zipFile = filePath;
+    console.log("filePath", filePath);
+    let fileName = files.file.name.split(".")[0];
+    fileN = fileName;
+    let errorFileName = fileName;
+
+    if (err_file[errorFileName]) {
+      delete err_file[errorFileName];
+      //+ timeStamp
+      fs.writeFile(
+        err_path,
+        //errors,
+        // `let ${errorFileName} =  ${JSON.stringify(fileUploadErrorArr)}`,
+        JSON.stringify(err_file),
+        (err) => {
+          err && console.log("err", err);
+        }
+      );
+    }
+
+    console.log(fileName + ".csv", fileName + ".csv");
+    fs.exists(
+      path.join(staticDataPath, "generated-csv", fileName + ".csv"),
+      function (exists) {
+        // console.log("exists", exists);
+        if (exists) {
+          fs.unlinkSync(
+            path.join(staticDataPath, "generated-csv", fileName + ".csv")
+          );
+        }
+      }
+    );
+
+    fs.exists(
+      path.join(uploaded_folder_path, fileName),
+      async function (exists) {
+        console.log(
+          path.join(uploaded_folder_path, fileName) + " exists",
+          exists
+        );
+        if (exists) {
+          await empty(path.join(uploaded_folder_path, fileName), false, (o) => {
+            if (o.error) {
+              console.error(o.error);
+            } else {
+              fs.rmdir(path.join(uploaded_folder_path, fileName), (err) => {
+                if (err) throw err;
+                console.log("successfully deleted directory");
+              });
+              //fs.unlinkSync(path.join(uploaded_folder_path, fileName));
+            }
+          });
+        }
+      }
+    );
+
     try {
-      await decompress(filePath, "uploadedFolder");
-      console.log("decompressed");
+      await decompress(filePath, uploaded_folder_path);
+      console.log(`decompressed ${fileName}`);
 
       fs.copyFile(csv_template_path, duplicated_csv_template_path, (err) => {
         if (err) throw err;
@@ -255,10 +317,12 @@ router.post("/upload-file", async (req, res) => {
 
       const tree = dirTree(uploaded_folder_path);
       let folder = tree.children.length
-        ? tree.children.filter((c) => c.name !== "__MACOSX")[0]
+        ? tree.children.filter((c) => c.name === fileName)[0]
         : undefined;
+      // console.log("folder", folder);
+      uploadedFolder = folder.path;
       let folder_content = folder ? folder.children : undefined;
-      console.log("folder_content", folder_content);
+      // console.log("folder_content", folder_content);
 
       if (folder_content) {
         let PINS_Arr = folder.children.map((c) => c.name);
@@ -270,21 +334,15 @@ router.post("/upload-file", async (req, res) => {
             let final = JSON.stringify(jsonFormat);
             let api_data = await getAPIDATA(PINS_Arr[i], stanbic_access_token); //.filter((s) => s.pin === PINS_Arr[i])[0];
             console.log("api_data for " + PINS_Arr[i] + ": ", api_data);
-
-            // if (api_data != "Error: Invalid Access Token")
             if (api_data == "Error: Invalid Access Token") {
-              api_data_fetch.push({
-                pin: PINS_Arr[i],
-                error:
-                  "The api details of " +
+              buildErrObj(
+                PINS_Arr[i],
+                "The api details of " +
                   PINS_Arr[i] +
-                  " could not be fetched due to Invalid Access Token",
-              });
+                  " could not be fetched due to Invalid Access Token"
+              );
             } else if (api_data == "Error: Record not found") {
-              api_data_fetch.push({
-                pin: PINS_Arr[i],
-                error: "The api details of " + PINS_Arr[i] + " does not exist",
-              });
+              buildErrObj(PINS_Arr[i], "Error: Record not found");
             } else {
               api_data["search_pin"] = PINS_Arr[i];
 
@@ -479,54 +537,106 @@ router.post("/upload-file", async (req, res) => {
           delete csvJSON[i]["param.proof_of_address_type"];
           delete csvJSON[i]["param.id_type"];
         }
-
+        // errorFileName = fileN;
         //https://stackabuse.com/reading-and-writing-csv-files-in-nodejs-with-node-csv/
         if (fileUploadErrorArr.length) {
           // console.log(
           //   "CSV Generation Error: ",
           //   JSON.stringify(fileUploadErrorArr)
           // );
-          let errors = "";
+          //let errors = "";
 
-          fileUploadErrorArr.map((f) => {
-            errors += f.error + " for " + f.pin + " not provided. ";
-          });
+          /* fileUploadErrorArr.map((f) => {
+            buildErrObj(f.pin, f.error);
+            // errors += f.error + " for " + f.pin + " not provided. ";
+          }); */
 
-          console.log("errors", errors);
+          console.log("fileUploadErrorArr", fileUploadErrorArr);
+          let timeStamp = new Date().getTime();
+
+          err_file[errorFileName] = fileUploadErrorArr;
+          //+ timeStamp
           fs.writeFile(
             err_path,
-            errors,
-            // "let errors = " +
-            //   JSON.stringify(fileUploadErrorArr)
-            (err) => {
-              err && console.log("err", err);
-            }
-          );
-        } else if (api_data_fetch.length) {
-          let errors = "";
-
-          api_data_fetch.map((e) => {
-            errors += e.error + ". ";
-          });
-
-          console.log("errors", errors);
-          fs.writeFile(
-            err_path,
-            errors,
-            // "let errors = " +
-            //   JSON.stringify(fileUploadErrorArr)
+            //errors,
+            // `let ${errorFileName} =  ${JSON.stringify(fileUploadErrorArr)}`,
+            JSON.stringify(err_file),
             (err) => {
               err && console.log("err", err);
             }
           );
         } else {
-          stringify(csvJSON, { header: true }, (err, output) => {
-            fs.writeFile(generated_csv_path, output, (err) => {
+          /*  else if (api_data_fetch.length) {
+          console.log("is api error");
+          // let errors = "";
+
+          api_data_fetch.map((e) => {
+            buildErrObj(e.pin, e.error);
+            //errors += e.error + ". ";
+          });
+
+          err_file[errorFileName] = fileUploadErrorArr;
+          //console.log("errors", errors);
+          fs.writeFile(
+            err_path,
+            // errors,
+            // "let errors = " + JSON.stringify(fileUploadErrorArr),
+            JSON.stringify(err_file),
+            (err) => {
               err && console.log("err", err);
-            });
+            }
+          );
+        } */
+          stringify(csvJSON, { header: true }, (err, output) => {
+            fs.writeFile(
+              `${generated_csv_path}/${fileName}.csv`,
+              output,
+              (err) => {
+                err && console.log("err", err);
+              }
+            );
           });
           console.log("done with loop; csv file generated");
+          fs.exists(zipFile, function (exists) {
+            if (exists) {
+              fs.unlinkSync(zipFile);
+            }
+          });
+          // fs.exists(path.join(staticDataPath, "generated-csv" + fileName + ".csv"), function (exists) {
+          //   if (exists) {
+          //     fs.unlinkSync(path.join(staticDataPath, "generated-csv" + fileName + ".csv"));
+          //   }
+          // });
+          //   await empty(zipUploadFolder, false, (o) => {
+          //   if (o.error) console.error(o.error);
+          // });
+
+          // await empty(uploaded_folder_path, false, (o) => {
+          //   if (o.error) console.error(o.error);
+          // });
+
+          // await empty(
+          //   path.join(staticDataPath, "generated-csv"),
+          //   false,
+          //   (o) => {
+          //     if (o.error) console.error(o.error);
+          //   }
+          // );
         }
+      } else {
+        //let errors = "Folder content not found";
+
+        console.log("errors", errors);
+        err_file[errorFileName] = fileUploadErrorArr;
+        fs.writeFile(
+          err_path,
+          // errors,
+          // "let errors = " + JSON.stringify(fileUploadErrorArr),
+          JSON.stringify(err_file),
+          (err) => {
+            err && console.log("err", err);
+          }
+        );
       }
     } catch (error) {
       console.log("error", error);

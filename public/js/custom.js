@@ -22,27 +22,57 @@ let is_network_error = false;
 
 let timer = 5000;
 
-function checkForCSV() {
+let fileContent;
+let errors;
+
+function checkForCSV(file_name) {
+  readErrorsFile("../errors.json", function (text) {
+    errors = JSON.parse(text);
+  });
+
   let csvFileExists = FileExists(
-    "../generated-csv/generated-bulk-upload-csv.csv"
+    `../generated-csv/${file_name.split(".")[0]}.csv`
   );
 
-  let errorsFileExist = FileExists("../errors.js");
+  let fileExists = csvFileExists ? true : false;
+  let errorsExists = false;
 
-  fileExists = csvFileExists ? true : false;
-  errorsExists = errorsFileExist ? true : false;
+  if (errors) {
+    errorsExists = errors[file_name.split(".")[0]] ? true : false;
+  }
 
-  console.log("fileExisits", fileExists, "errorsExists", errorsExists);
+  console.log(
+    "fileExisits",
+    fileExists //, "errorsExists", errorsExists
+  );
 
   if (fileExists) {
-    HideMessage();
+    HideMessage(file_name);
     clearInterval(interval);
   }
 
-  if (errorsExists || is_network_error) {
-    //console.log("error exists");
-    ShowErrors();
+  console.log("errors", errors);
+
+  if (
+    errorsExists ||
+    is_network_error
+    // || errors[file_name]
+  ) {
+    console.log("error exists");
+    ShowErrors(file_name);
   }
+}
+
+function readErrorsFile(file, callback) {
+  var rawFile = new XMLHttpRequest();
+  rawFile.overrideMimeType("application/json");
+  rawFile.open("GET", file, true);
+  rawFile.onreadystatechange = function () {
+    if (rawFile.readyState === 4 && rawFile.status == "200") {
+      callback(rawFile.responseText);
+    }
+  };
+  rawFile.send(null);
 }
 
 function FileExists(urlToFile) {
@@ -55,6 +85,7 @@ function FileExists(urlToFile) {
       console.log("File doesn't exist");
       return false;
     } else {
+      console.log("xhr responseText", xhr.responseText);
       console.log("File exists");
       return true;
     }
@@ -68,15 +99,15 @@ const toggleIsFileUploaded = () => {
   is_file_uploaded = !is_file_uploaded;
 };
 
-const toggleDisplayUploadBtn = () => {
+const toggleDisplayUploadBtn = (file_name) => {
   if (is_file_uploaded) {
     p.style.display = "none";
     uploadIcon.style.display = "none";
-    ShowMessage();
+    ShowMessage(file_name);
   } else {
     p.style.display = "block";
     uploadIcon.style.display = "block";
-    HideMessage();
+    HideMessage(file_name);
   }
 };
 
@@ -91,32 +122,46 @@ refreshBtn.addEventListener("click", (e) => {
 
 fileInput.onchange = ({ target }) => {
   let file = target.files[0];
+
   if (file) {
     let fileName = file.name;
+    let timeStamp = new Date().getTime();
+    var blob = file.slice(0, file.size, "file/zip");
+    let nameArr = fileName.split(".");
+    newFile = new File(
+      [blob],
+      nameArr[0] +
+        // + "-" + timeStamp
+        "." +
+        nameArr[1],
+      {
+        type: "file/zip",
+      }
+    );
+
+    fileName = newFile.name;
+    file = newFile;
+
+    console.log("fileName", fileName);
+    console.log("newFile", newFile);
+
     if (fileName.length >= 12) {
       let splitName = fileName.split(".");
       fileName = splitName[0].substring(0, 13) + "... ." + splitName[1];
     }
-    uploadFile(fileName, file);
+    uploadFile(fileName, newFile);
   }
 };
 
-// let xhr = new XMLHttpRequest();
-
-// let resp = "";
-// xhr.onreadystatechange = () => {
-
-//   if (xhr.readyState == 4 && xhr.status == 200) {
-//     resp = xhr.responseText;
-//   }
-// };
-
 let upload_file_path = `//${APP_PATH}/tools-test/upload-file`;
-//let download_file_path = `//${APP_PATH}/tools-test/download-csv`;
 
 function uploadFile(name, file) {
   console.log("changed input");
+  // let timeStamp = new Date().getTime();
+  // file.name = file.name + "-" + timeStamp;
 
+  console.log("file.name", file.name);
+  let file_name = file.name;
   var formData = new FormData();
   formData.append("file", file);
 
@@ -169,7 +214,7 @@ function uploadFile(name, file) {
       });
       toggleIsFileUploaded();
       console.log("is_file_uploaded", is_file_uploaded);
-      toggleDisplayUploadBtn();
+      toggleDisplayUploadBtn(file_name);
     }
   });
 
@@ -198,16 +243,26 @@ function readTextFile(file) {
   return allText;
 }
 
-function ShowErrors() {
+function ShowErrors(file_name) {
+  console.log("file_name");
   $("#message-text2").hide();
 
   if (is_network_error) {
     $("#message-text3").text("A network error has occured...");
   }
-  if (FileExists("../errors.js")) {
-    let errors = readTextFile("../errors.js").substring(0, 85) + "...";
-    console.log("errors", errors);
-    $("#message-text3").text(errors);
+  if (errors) {
+    let error = errors[file_name.split(".")[0]];
+    {
+      if (error) {
+        console.log("error", error);
+        let errorMsg = "";
+
+        for (let i = 0; i < error.length; i++) {
+          errorMsg += `PIN: ${error[i].pin}, ${error[i].error}. `;
+        }
+        $("#message-text3").text(errorMsg.substring(0, 85) + "...");
+      }
+    }
   }
 
   $("#message-text3").show();
@@ -219,7 +274,7 @@ function buildErrorMsg() {}
 
 function HideErrors() {}
 
-function ShowMessage() {
+function ShowMessage(file_name) {
   $("#message-text1").text("Zip file has been uploaded successfully.");
   $("#message-text2").text("Please wait while CSV file is being generated...");
   $("#message").show();
@@ -228,11 +283,11 @@ function ShowMessage() {
   interval = setInterval(function () {
     $("#message-text1").hide();
     $("#message-text2").show();
-    checkForCSV();
+    checkForCSV(file_name);
   }, timer);
 }
 
-function HideMessage() {
+function HideMessage(file_name) {
   //$("#message").hide();
   $("#message-text1").show();
   $("#message-text2").hide();
@@ -241,6 +296,10 @@ function HideMessage() {
   $("#message").hide();
   $("#download-link").show();
   $(".refresh-page").show();
+  $("#download-link").attr(
+    "href",
+    `generated-csv/${file_name.split(".")[0]}.csv`
+  );
 }
 
 (function () {
