@@ -150,11 +150,12 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
   //     fs.unlinkSync(err_path);
   //   }
   // });
-
   res.render(viewDataPath + "/index", {
     appPath: appPath,
     pageName: "outstandingdocs",
     csrfToken: csrfTokenManager.create(csrfSecret),
+    client_id: process.env["STANBIC_IBTC_CLIENT_ID"],
+    port: process.env["APP_PORT"],
   });
 });
 
