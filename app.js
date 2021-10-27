@@ -28,10 +28,15 @@ const {
 var isProd = process.env["NODE_ENV"] == "production";
 
 var port = process.env["APP_PORT"] || 8080;
-var appPath = process.env["APP_PATH"] || (isProd ? "/tools" : "/tools-test");
+var appPath =
+  process.env["APP_PATH"] ||
+  //(isProd ? "/tools" :
+  "/tools-test";
+//);
 appPath = appPath.endsWith("/")
   ? appPath.substring(0, appPath.length - 1)
   : appPath;
+var protocol = isProd ? process.env["APP_SCHEME"] : "http";
 
 varOutstandingDocColID = process.env["OUTSTANDING_DOC_COL_ID"];
 
@@ -129,8 +134,6 @@ app.get(appPath, function (req, res) {
 });
 
 app.get(appPath + "/outstanding-docs", async (req, res) => {
-  //https://formelo.stanbicibtcpension.com/oauth/authorize/?client_id=INSERT_CLIENT_ID_HERE&response_type=token&redirect_uri=http://localhost:8080/tools-test/outstanding-docs/progress&scope=*.*&state=
-
   //stanbicRealmToken = await auth.stanbicRealmToken;
 
   // await empty(zipUploadFolder, false, (o) => {
@@ -150,12 +153,26 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
   //     fs.unlinkSync(err_path);
   //   }
   // });
+
+  console.log("req.get('host')", req.get("host"));
+  var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
+  console.log("baseUrl", baseUrl);
+  var redirect_uri = baseUrl + "progress";
+  var next_uri =
+    baseUrl + (req.path.startsWith("/") ? req.path.substring(1) : req.path);
+  console.log("next_uri", next_uri);
+  /*if (next_uri != redirect_uri && (config.appPath + req.path) != defaultPath) {
+      redirect_uri += '?next_uri=' + encodeURIComponent(next_uri);
+/  } */
+  // res.redirect(appPath + '/login' + '?redirect_uri=' + encodeURIComponent(redirect_uri));
+
   res.render(viewDataPath + "/index", {
     appPath: appPath,
     pageName: "outstandingdocs",
     csrfToken: csrfTokenManager.create(csrfSecret),
     client_id: process.env["STANBIC_IBTC_CLIENT_ID"],
     port: process.env["APP_PORT"],
+    redirect_uri: redirect_uri,
   });
 });
 

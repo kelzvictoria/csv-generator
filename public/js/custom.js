@@ -1,7 +1,7 @@
 const directory = "../uploadedFolder";
 
-const APP_PORT = 8080;
-const APP_PATH = "localhost:" + APP_PORT;
+//const APP_PORT = 8080;
+//const APP_PATH = "localhost:" + APP_PORT;
 
 let stanbic_token;
 
@@ -24,6 +24,7 @@ let timer = 5000;
 
 let fileContent;
 let errors;
+let window_location;
 
 function checkForCSV(file_name) {
   readErrorsFile("../errors.json", function (text) {
@@ -153,10 +154,16 @@ fileInput.onchange = ({ target }) => {
   }
 };
 
-let upload_file_path = `//${APP_PATH}/tools-test/upload-file`;
-
 function uploadFile(name, file) {
-  console.log("changed input");
+  //console.log("window.location", window.location);
+  window_location = window.location.href;
+  let appPath = window.location.href
+    .split(window.location.host)[1]
+    .split("/")[1];
+  let upload_file_path = `//${window.location.host}/${appPath}/upload-file`;
+  console.log("appPath", appPath);
+  //console.log("upload_file_path", upload_file_path);
+  // console.log("changed input");
   // let timeStamp = new Date().getTime();
   // file.name = file.name + "-" + timeStamp;
 
@@ -203,8 +210,7 @@ function uploadFile(name, file) {
                           </li>`;
       uploadedArea.classList.remove("onprogress");
       uploadedArea.innerHTML = uploadedHTML;
-      const cancelButton =
-        document.querySelector(".btnCancel"); /*(".fa-times")*/
+      const cancelButton = document.querySelector(".btnCancel");
       cancelButton.addEventListener("click", () => {
         console.log("clicked cancel");
         form.reset();
@@ -318,13 +324,6 @@ function HideMessage(file_name) {
       console.log("local_token", local_token);
       if (access_token) {
         stanbic_token = access_token;
-      }
-    } else {
-      if (local_token) {
-        stanbic_token = local_token;
-      } else {
-        window.location.href =
-          "http://localhost:8080/tools-test/outstanding-docs";
       }
     }
   }, 3000);

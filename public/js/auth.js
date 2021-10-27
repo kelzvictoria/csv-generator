@@ -1,5 +1,6 @@
 (function () {
   //"use strict";
+
   let local_token = localStorage.getItem("access_token");
   var timerHandle = setInterval(function () {
     if (window.location.href.indexOf("access_token") !== -1) {
@@ -12,7 +13,7 @@
       localStorage.setItem("access_token", access_token);
 
       console.log("local_token", local_token);
-      window.location.href = "http://localhost:8080/tools-test/csv-generator";
+      //  window.location.href = "http://localhost:8080/tools-test/csv-generator";
       //  if (access_token) {
       //    stanbic_token = access_token;
       //  }
