@@ -31,12 +31,17 @@ let window_location;
 let errors_file_path;
 
 function checkForCSV(file_name) {
+  window_location = window.location.href;
+  let appPath = window.location.href
+    .split(window.location.host)[1]
+    .split("/")[1];
+
   readErrorsFile(errors_file_path, function (text) {
     errors = JSON.parse(text);
   });
 
   let csvFileExists = FileExists(
-    `../generated-csv/${file_name.split(".")[0]}.csv`
+    `../${appPath}/generated-csv/${file_name.split(".")[0]}.csv`
   );
 
   let fileExists = csvFileExists ? true : false;
@@ -49,6 +54,11 @@ function checkForCSV(file_name) {
   console.log(
     "fileExisits",
     fileExists //, "errorsExists", errorsExists
+  );
+
+  console.log(
+    "csv",
+    `../${appPath}/generated-csv/${file_name.split(".")[0]}.csv`
   );
 
   if (fileExists) {
@@ -72,6 +82,11 @@ function readErrorsFile(file, callback) {
   var rawFile = new XMLHttpRequest();
   rawFile.overrideMimeType("application/json");
   rawFile.open("GET", file, true);
+  xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+
+  // fallbacks for IE and older browsers:
+  xhr.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
+  xhr.setRequestHeader("Pragma", "no-cache");
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4 && rawFile.status == "200") {
       callback(rawFile.responseText);
@@ -83,9 +98,14 @@ function readErrorsFile(file, callback) {
 function FileExists(urlToFile) {
   var xhr = new XMLHttpRequest();
   xhr.open("HEAD", urlToFile, false);
+  xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+
+  // fallbacks for IE and older browsers:
+  xhr.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
+  xhr.setRequestHeader("Pragma", "no-cache");
   try {
     xhr.send();
-
+    console.log("xhr.status", xhr.status);
     if (xhr.status == "404") {
       console.log("File doesn't exist");
       return false;

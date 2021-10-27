@@ -74,7 +74,7 @@ let generated_csv_path = path.join(
   // "/generated-bulk-upload-csv.csv"
 );
 
-let err_path = path.join(filesStaticDataPath, `errors.json`);
+let err_path = path.join(staticDataPath, `errors.json`);
 
 const err_file = require(err_path);
 
@@ -227,8 +227,9 @@ router.post("/upload-file", async (req, res) => {
   //console.log("form", form);
   fileUploadErrorArr = [];
 
-  const buildErrObj = (pin, error) => {
+  const buildErrObj = (folder_name, pin, error) => {
     fileUploadErrorArr.push({
+      folder_name,
       pin,
       error,
     });
@@ -246,7 +247,7 @@ router.post("/upload-file", async (req, res) => {
         val = cdn_url;
         return val;
       } else {
-        buildErrObj(pin, col);
+        buildErrObj(pin, col, fileN);
         return;
       }
     } else {
@@ -257,7 +258,7 @@ router.post("/upload-file", async (req, res) => {
       //   val = value_from_user_details_obj;
       //   return val;
       // }
-      buildErrObj(pin, col);
+      buildErrObj(pin, col, fileN);
       return;
     }
   };
@@ -359,10 +360,11 @@ router.post("/upload-file", async (req, res) => {
                 PINS_Arr[i],
                 "The api details of " +
                   PINS_Arr[i] +
-                  " could not be fetched due to Invalid Access Token"
+                  " could not be fetched due to Invalid Access Token",
+                fileN
               );
             } else if (api_data == "Error: Record not found") {
-              buildErrObj(PINS_Arr[i], "Error: Record not found");
+              buildErrObj(PINS_Arr[i], "Error: Record not found", fileN);
             } else {
               api_data["search_pin"] = PINS_Arr[i];
 
@@ -495,7 +497,11 @@ router.post("/upload-file", async (req, res) => {
                             ).id
                           : "";
                       } else {
-                        buildErrObj(PINS_Arr[i], "proof of address type");
+                        buildErrObj(
+                          PINS_Arr[i],
+                          "proof of address type",
+                          fileN
+                        );
                       }
 
                       val = address_type
@@ -515,7 +521,7 @@ router.post("/upload-file", async (req, res) => {
                           ? await getProofOfIdType(file_name).id
                           : "";
                       } else {
-                        buildErrObj(PINS_Arr[i], "proof of id type");
+                        buildErrObj(PINS_Arr[i], "proof of id type", fileN);
                       }
 
                       val = id_type ? id_type : api_data.id_type;
@@ -559,7 +565,17 @@ router.post("/upload-file", async (req, res) => {
         }
         // errorFileName = fileN;
         //https://stackabuse.com/reading-and-writing-csv-files-in-nodejs-with-node-csv/
-        if (fileUploadErrorArr.length) {
+
+        let error_files = fileUploadErrorArr.map((f) => f.error);
+        let is_folder_error = error_files.includes(fileN);
+        console.log(
+          " error_files.includes(fileN)",
+          error_files.includes(fileN)
+        );
+        if (
+          (fileUploadErrorArr.length && !is_folder_error) ||
+          (fileUploadErrorArr && is_folder_error)
+        ) {
           // console.log(
           //   "CSV Generation Error: ",
           //   JSON.stringify(fileUploadErrorArr)
@@ -585,7 +601,8 @@ router.post("/upload-file", async (req, res) => {
               err && console.log("err", err);
             }
           );
-        } else {
+        } // else if (fileUploadErrorArr && is_folder_error )
+        else {
           stringify(csvJSON, { header: true }, (err, output) => {
             fs.writeFile(
               `${generated_csv_path}/${fileName}.csv`,
