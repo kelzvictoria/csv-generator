@@ -564,10 +564,10 @@ router.post("/upload-file", async (req, res) => {
           // );
           //let errors = "";
 
-          /* fileUploadErrorArr.map((f) => {
-            buildErrObj(f.pin, f.error);
-            // errors += f.error + " for " + f.pin + " not provided. ";
-          }); */
+          // fileUploadErrorArr.map((f) => {
+          //buildErrObj(f.pin, f.error);
+          // errors += f.error + " for " + f.pin + " not provided. ";
+          //});
 
           console.log("fileUploadErrorArr", fileUploadErrorArr);
           let timeStamp = new Date().getTime();
@@ -584,27 +584,6 @@ router.post("/upload-file", async (req, res) => {
             }
           );
         } else {
-          /*  else if (api_data_fetch.length) {
-          console.log("is api error");
-          // let errors = "";
-
-          api_data_fetch.map((e) => {
-            buildErrObj(e.pin, e.error);
-            //errors += e.error + ". ";
-          });
-
-          err_file[errorFileName] = fileUploadErrorArr;
-          //console.log("errors", errors);
-          fs.writeFile(
-            err_path,
-            // errors,
-            // "let errors = " + JSON.stringify(fileUploadErrorArr),
-            JSON.stringify(err_file),
-            (err) => {
-              err && console.log("err", err);
-            }
-          );
-        } */
           stringify(csvJSON, { header: true }, (err, output) => {
             fs.writeFile(
               `${generated_csv_path}/${fileName}.csv`,

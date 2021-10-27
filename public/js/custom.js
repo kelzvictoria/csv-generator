@@ -224,8 +224,9 @@ function uploadFile(name, file) {
     }
   });
 
-  //let token = localStorage.getItem("access_token");
-  formData.append("access_token", stanbic_token);
+  let token = localStorage.getItem("access_token");
+  console.log("token", token);
+  formData.append("access_token", token);
 
   xhr.send(formData);
   //alert(resp);
@@ -320,11 +321,11 @@ function HideMessage(file_name) {
       // USE THE TOKEN...
       // console.log("token", access_token);
       localStorage.setItem("access_token", access_token);
-
-      console.log("local_token", local_token);
-      if (access_token) {
-        stanbic_token = access_token;
-      }
+      stanbic_token = access_token;
+      // console.log("local_token", local_token);
+      // if (access_token || local_token) {
+      //   stanbic_token = access_token;
+      // }
     }
   }, 3000);
   return true;
