@@ -1,8 +1,8 @@
 const axios = require("axios");
 //const utils = require("./utils")
-const DEMO_SECRET = process.env.DEMO_SECRET;
-const DEMO_ID = process.env.DEMO_ID;
-const DEMO_REALM_URL = process.env.DEMO_REALM_URL;
+//const DEMO_SECRET = process.env.DEMO_SECRET;
+//const DEMO_ID = process.env.DEMO_ID;
+//const DEMO_REALM_URL = process.env.DEMO_REALM_URL;
 
 const STANBIC_IBTC_SECRET = process.env.STANBIC_IBTC_SECRET;
 const STANBIC_IBTC_ID = process.env.STANBIC_IBTC_ID;
@@ -75,8 +75,8 @@ const getStanbicRealmToken = async () => {
   }
 };
 
-demoRealmToken = getDemoRealmToken();
-stanbicRealmToken = getStanbicRealmToken();
+//demoRealmToken = getDemoRealmToken();
+//stanbicRealmToken = getStanbicRealmToken();
 
 module.exports = {
   demoRealmToken,

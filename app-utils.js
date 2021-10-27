@@ -130,7 +130,7 @@ const getCDNURL = async (file_path, token) => {
   data.append("file", fs.createReadStream(file_path));
   //console.log("demoRealmToken", token);
   await axios
-    .post("https://demo.formelo.com/api/files", data, {
+    .post("https://formelo.stanbicibtcpension.com/api/files", data, {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,

@@ -167,7 +167,7 @@ app.get(appPath + "/progress", async (req, res) => {
 });
 
 app.get(appPath + "/csv-generator", async (req, res) => {
-  demoRealmToken = await auth.demoRealmToken;
+  //demoRealmToken = await auth.demoRealmToken;
   /* await empty(zipUploadFolder, false, (o) => {
     if (o.error) console.error(o.error);
   });
@@ -219,7 +219,7 @@ router.post("/upload-file", async (req, res) => {
     let cdn_url, val, value_from_user_details_obj;
     if (file) {
       let file_path = file.path;
-      cdn_url = await getCDNURL(file_path, demoRealmToken);
+      cdn_url = await getCDNURL(file_path, stanbic_access_token);
 
       if (cdn_url) {
         console.log("CDN URL received for " + pin + ": ", cdn_url);
