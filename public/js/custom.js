@@ -190,7 +190,7 @@ function uploadFile(name, file) {
     .split("/")[1];
   let upload_file_path = `//${window.location.host}/${appPath}/upload-file`;
   errors_file_path = `../${appPath}/errors.json`;
-  console.log("appPath", appPath);
+  console.log("errors_file_path", errors_file_path);
   //console.log("upload_file_path", upload_file_path);
   // console.log("changed input");
   // let timeStamp = new Date().getTime();
