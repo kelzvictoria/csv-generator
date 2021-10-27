@@ -36,7 +36,7 @@ var appPath =
 appPath = appPath.endsWith("/")
   ? appPath.substring(0, appPath.length - 1)
   : appPath;
-var protocol = isProd ? process.env["APP_SCHEME"] : "http";
+var protocol = process.env["APP_SCHEME"] || "http";
 
 varOutstandingDocColID = process.env["OUTSTANDING_DOC_COL_ID"];
 
