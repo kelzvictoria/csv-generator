@@ -16,9 +16,6 @@
       window.location.href =
         "https://formelo.stanbicibtcpension.com/bulk-import-test/csv-generator";
       // window.location.href = "http://localhost:8080/bulk-import-test/csv-generator";
-      //  if (access_token) {
-      //    stanbic_token = access_token;
-      //  }
     }
 
     // else {

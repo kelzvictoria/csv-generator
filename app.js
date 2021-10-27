@@ -136,24 +136,6 @@ app.get(appPath, function (req, res) {
 app.get(appPath + "/outstanding-docs", async (req, res) => {
   //stanbicRealmToken = await auth.stanbicRealmToken;
 
-  // await empty(zipUploadFolder, false, (o) => {
-  //   if (o.error) console.error(o.error);
-  // });
-
-  // await empty(uploaded_folder_path, false, (o) => {
-  //   if (o.error) console.error(o.error);
-  // });
-
-  // await empty(path.join(staticDataPath, "generated-csv"), false, (o) => {
-  //   if (o.error) console.error(o.error);
-  // });
-
-  // fs.exists(err_path, function (exists) {
-  //   if (exists) {
-  //     fs.unlinkSync(err_path);
-  //   }
-  // });
-
   console.log("req.get('host')", req.get("host"));
   var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
   console.log("baseUrl", baseUrl);
@@ -177,10 +159,15 @@ app.get(appPath + "/outstanding-docs", async (req, res) => {
 });
 
 app.get(appPath + "/progress", async (req, res) => {
+  var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
+  var redirect_uri = baseUrl + "progress";
+
   res.render(viewDataPath + "/progress", {
     appPath: appPath,
     pageName: "progress",
     csrfToken: csrfTokenManager.create(csrfSecret),
+    client_id: process.env["STANBIC_IBTC_CLIENT_ID"],
+    redirect_uri: redirect_uri,
   });
 });
 
@@ -202,11 +189,17 @@ app.get(appPath + "/csv-generator", async (req, res) => {
     if (exists) {
       fs.unlinkSync(err_path);
     }
+
   }); */
+
+  var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
+  var redirect_uri = baseUrl + "progress";
   res.render(viewDataPath + "/csvGenerator", {
     appPath: appPath,
     pageName: "csv-generator",
     csrfToken: csrfTokenManager.create(csrfSecret),
+    client_id: process.env["STANBIC_IBTC_CLIENT_ID"],
+    redirect_uri: redirect_uri,
   });
 });
 

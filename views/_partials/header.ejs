@@ -136,7 +136,7 @@
         <nav class="main-nav">
           <div class="logo-n-name">
             <!--<a href="/view2">     <img src="./img/logo.png" alt="StanbicIbtc" class="logo" /></a>-->
-            <a href="..<%=appPath%>outstanding-docs" class="logo"></a>
+            <a href="..<%=appPath%>" class="logo"></a>
             <!--   <img src="./logo.png" alt="StanbicIbtc" class="logo" /> 
             <ul class="brand-name">
               <li class="stanbicibtc"><a href="/view2">Stanbic IBTC</a></li>
@@ -146,19 +146,20 @@
             </ul>-->
           </div>
 
-          <!-- 
-            <ul class="main-menu">
-              <li class="nav-item <%=(pageName ==="calculatepensions") ? "active" : ""%>">
-                <div><a href="./pension-calculator">Calculate Pensions</a></div>
-              </li>
-              <li class="nav-item <%=(pageName ==="budgetplanner") ? "active" : ""%>">
-                  <div><a href="./budget-planner">Plan a Budget</a></div>
-              </li>
-              <li class="nav-item <%=(pageName ==="faq") ? "active" : ""%>"><div><a href="./faq">FAQ</a></div></li>
-              <li class="nav-item"><div><a href="https://www.stanbicibtcpension.com/nigeriapensionmanagers/pension-managers/conntact-us">Contact Us</a></div></li>
-            </ul>
-
-             -->
+          <ul class="main-menu">
+            <li class="nav-item">
+              <div><a href="..<%=appPath%>" id="logout">Logout</a></div>
+            </li>
+            <li class="nav-item">
+              <div>
+                <a
+                  href="https://formelo.stanbicibtcpension.com/oauth/authorize/?client_id=<%=client_id%>&response_type=token&redirect_uri=<%=redirect_uri%>&scope=*.*&state="
+                  id="login"
+                  >Login</a
+                >
+              </div>
+            </li>
+          </ul>
         </nav>
       </div>
     </div>

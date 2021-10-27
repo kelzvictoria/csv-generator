@@ -15,7 +15,9 @@ const form = document.querySelector("form"),
   (downloadLink = document.querySelector("#download-link")),
   (downloadBtnDiv = document.querySelector(".btn-download-div")),
   (refreshBtn = document.querySelector("#refresh")),
-  (refreshDiv = document.querySelector(".refresh-page"));
+  (refreshDiv = document.querySelector(".refresh-page")),
+  (btnLogin = document.querySelector("#login")),
+  (btnLogout = document.querySelector("#logout"));
 
 let is_file_uploaded = false;
 let is_network_error = false;
@@ -114,6 +116,10 @@ const toggleDisplayUploadBtn = (file_name) => {
 
 p.addEventListener("click", () => {
   fileInput.click();
+});
+
+btnLogout.addEventListener("click", () => {
+  localStorage.removeItem("access_token");
 });
 
 refreshBtn.addEventListener("click", (e) => {
@@ -310,8 +316,13 @@ function HideMessage(file_name) {
 }
 
 (function () {
+  console.log("in here");
   //"use strict";
   let local_token = localStorage.getItem("access_token");
+  if (local_token) {
+    btnLogout.style.display = "block";
+    btnLogin.style.display = "none";
+  }
   var timerHandle = setInterval(function () {
     if (window.location.href.indexOf("access_token") !== -1) {
       var access_token = window.location.href
@@ -321,6 +332,9 @@ function HideMessage(file_name) {
       // USE THE TOKEN...
       // console.log("token", access_token);
       localStorage.setItem("access_token", access_token);
+
+      btnLogout.style.display = "block";
+      btnLogin.style.display = "none";
       stanbic_token = access_token;
       // console.log("local_token", local_token);
       // if (access_token || local_token) {
