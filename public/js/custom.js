@@ -1,4 +1,4 @@
-const directory = "../uploadedFolder";
+const directory = "../uploaded-folder";
 
 //const APP_PORT = 8080;
 //const APP_PATH = "localhost:" + APP_PORT;
@@ -28,8 +28,10 @@ let fileContent;
 let errors;
 let window_location;
 
+let errors_file_path;
+
 function checkForCSV(file_name) {
-  readErrorsFile("../errors.json", function (text) {
+  readErrorsFile(errors_file_path, function (text) {
     errors = JSON.parse(text);
   });
 
@@ -167,6 +169,7 @@ function uploadFile(name, file) {
     .split(window.location.host)[1]
     .split("/")[1];
   let upload_file_path = `//${window.location.host}/${appPath}/upload-file`;
+  errors_file_path = `../${appPath}/errors.json`;
   console.log("appPath", appPath);
   //console.log("upload_file_path", upload_file_path);
   // console.log("changed input");

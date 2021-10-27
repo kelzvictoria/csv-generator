@@ -52,6 +52,8 @@ const corsOptions = {
 };
 
 const staticDataPath = __dirname + "/public";
+const filesStaticDataPath = __dirname + "/uploads";
+
 const viewDataPath = __dirname + "/views/_partials";
 
 let csv_template_path = path.join(
@@ -61,18 +63,18 @@ let csv_template_path = path.join(
 );
 
 let duplicated_csv_template_path = path.join(
-  staticDataPath,
+  filesStaticDataPath,
   "generated-csv",
   "bulk-upload-file.csv"
 );
 
 let generated_csv_path = path.join(
-  staticDataPath,
+  filesStaticDataPath,
   "generated-csv"
   // "/generated-bulk-upload-csv.csv"
 );
 
-let err_path = path.join(staticDataPath, `errors.json`);
+let err_path = path.join(filesStaticDataPath, `errors.json`);
 
 const err_file = require(err_path);
 
@@ -89,6 +91,13 @@ router.use(function (req, res, next) {
 app.use(
   appPath + "",
   express.static(staticDataPath, {
+    maxAge: "1d",
+  })
+);
+
+app.use(
+  appPath + "",
+  express.static(filesStaticDataPath, {
     maxAge: "1d",
   })
 );
@@ -204,9 +213,9 @@ app.get(appPath + "/csv-generator", async (req, res) => {
 });
 
 router.post("/upload-file", async (req, res) => {
-  let uploaded_folder_path = path.join(staticDataPath, "uploadedFolder/");
+  let uploaded_folder_path = path.join(filesStaticDataPath, "uploaded-folder/");
   let uploadedFolder, zipFile, fileN;
-  const zipUploadFolder = path.join(staticDataPath, "files");
+  const zipUploadFolder = path.join(filesStaticDataPath, "files");
 
   let fileUploadErrorArr;
 
@@ -283,12 +292,12 @@ router.post("/upload-file", async (req, res) => {
 
     console.log(fileName + ".csv", fileName + ".csv");
     fs.exists(
-      path.join(staticDataPath, "generated-csv", fileName + ".csv"),
+      path.join(filesStaticDataPath, "generated-csv", fileName + ".csv"),
       function (exists) {
         // console.log("exists", exists);
         if (exists) {
           fs.unlinkSync(
-            path.join(staticDataPath, "generated-csv", fileName + ".csv")
+            path.join(filesStaticDataPath, "generated-csv", fileName + ".csv")
           );
         }
       }
