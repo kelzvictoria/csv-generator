@@ -79,20 +79,20 @@ function checkForCSV(file_name) {
 }
 
 function readErrorsFile(file, callback) {
-  var rawFile = new XMLHttpRequest();
-  rawFile.overrideMimeType("application/json");
-  rawFile.open("GET", file, true);
+  var xhr = new XMLHttpRequest();
+  xhr.overrideMimeType("application/json");
+  xhr.open("GET", file, true);
   xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
 
   // fallbacks for IE and older browsers:
   xhr.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
   xhr.setRequestHeader("Pragma", "no-cache");
-  rawFile.onreadystatechange = function () {
-    if (rawFile.readyState === 4 && rawFile.status == "200") {
-      callback(rawFile.responseText);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status == "200") {
+      callback(xhr.responseText);
     }
   };
-  rawFile.send(null);
+  xhr.send(null);
 }
 
 function FileExists(urlToFile) {
