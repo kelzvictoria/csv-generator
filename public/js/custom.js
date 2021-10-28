@@ -105,7 +105,7 @@ function FileExists(urlToFile) {
   xhr.setRequestHeader("Pragma", "no-cache");
   try {
     xhr.send();
-    console.log("xhr.status", xhr.status);
+    //  console.log("xhr.status", xhr.status);
     if (xhr.status == "404") {
       console.log("File doesn't exist");
       return false;
@@ -204,6 +204,17 @@ function uploadFile(name, file) {
   var xhr = new XMLHttpRequest();
 
   xhr.open("POST", upload_file_path, true);
+  console.log("xhr.status OPENED: ", xhr.status);
+
+  xhr.onprogress = function () {
+    console.log("xhr.status LOADING: ", xhr.status);
+
+    if (xhr.status >= 400 && xhr.status < 600) {
+      is_network_error = true;
+    }
+  };
+  //if (xhr.status !== 0 )
+
   xhr.upload.addEventListener("progress", ({ loaded, total }) => {
     let fileLoaded = Math.floor((loaded / total) * 100);
     let fileTotal = Math.floor(total / 1000);
@@ -257,7 +268,11 @@ function uploadFile(name, file) {
   console.log("token", token);
   formData.append("access_token", token);
 
+  xhr.onload = function () {
+    console.log("xhr.status DONE: ", xhr.status);
+  };
   xhr.send(formData);
+
   //alert(resp);
 }
 
