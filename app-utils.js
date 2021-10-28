@@ -125,6 +125,8 @@ const getProofOfIdType = (file_name) => {
 };
 
 const getCDNURL = async (file_path, token) => {
+  console.log("file_path", file_path);
+  console.log("token in getCDNURL", token);
   let url;
   var data = new FormData();
   data.append("file", fs.createReadStream(file_path));
@@ -150,6 +152,8 @@ const getCDNURL = async (file_path, token) => {
 };
 
 const getAPIDATA = async (pin, token) => {
+  console.log("pin", pin);
+  console.log("token in getAPIData", token);
   let data;
   //console.log("stanbicRealmToken", token);
   await axios
@@ -160,20 +164,25 @@ const getAPIDATA = async (pin, token) => {
       },
     })
     .then((res) => {
-      console.log("res.data[0]", res.data[0]);
-      //return
+      // console.log("res.data[0]", res.data[0]);
+      console.log("res", res);
       data = res.data[0];
     })
     .catch((err) => {
-      console.log("GET Error: ", err.response.status, err);
-      if (err.response.status === 401) {
-        console.log("Auth Error");
-        data = "Error: Invalid Access Token";
-      }
+      console.log(
+        "getAPIData Error : ", //, err.response.status
+        err
+      );
+      if (err.response) {
+        if (err.response.status === 401) {
+          console.log("Auth Error");
+          data = "Error: Invalid Access Token";
+        }
 
-      if (err.response.status === 404) {
-        console.log("404");
-        data = "Error: Record not found";
+        if (err.response.status === 404) {
+          console.log("404");
+          data = "Error: Record not found";
+        }
       }
     });
 
