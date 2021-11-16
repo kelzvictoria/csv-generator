@@ -25,8 +25,6 @@ const {
   getAPIDATA,
 } = utils;
 
-var isProd = process.env["NODE_ENV"] == "production";
-
 var port = process.env["APP_PORT"] || 8080;
 var appPath =
   process.env["APP_PATH"] ||
@@ -80,8 +78,6 @@ const err_file = require(err_path);
 
 const app = express();
 const router = express.Router();
-
-let demoRealmToken, stanbicRealmToken;
 
 router.use(function (req, res, next) {
   next();
@@ -145,17 +141,10 @@ app.get(appPath, function (req, res) {
 app.get(appPath + "/outstanding-docs", async (req, res) => {
   //stanbicRealmToken = await auth.stanbicRealmToken;
 
-  console.log("req.get('host')", req.get("host"));
+  //console.log("req.get('host')", req.get("host"));
   var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
-  console.log("baseUrl", baseUrl);
+  //console.log("baseUrl", baseUrl);
   var redirect_uri = baseUrl + "progress";
-  var next_uri =
-    baseUrl + (req.path.startsWith("/") ? req.path.substring(1) : req.path);
-  console.log("next_uri", next_uri);
-  /*if (next_uri != redirect_uri && (config.appPath + req.path) != defaultPath) {
-      redirect_uri += '?next_uri=' + encodeURIComponent(next_uri);
-/  } */
-  // res.redirect(appPath + '/login' + '?redirect_uri=' + encodeURIComponent(redirect_uri));
 
   res.render(viewDataPath + "/index", {
     appPath: appPath,
@@ -323,7 +312,7 @@ router.post("/upload-file", async (req, res) => {
                 } else {
                   fs.rmdir(path.join(uploaded_folder_path, fileName), (err) => {
                     if (err) throw err;
-                    console.log("successfully deleted directory");
+                    //console.log("successfully deleted directory");
                   });
                   //fs.unlinkSync(path.join(uploaded_folder_path, fileName));
                 }
@@ -335,11 +324,11 @@ router.post("/upload-file", async (req, res) => {
 
       try {
         await decompress(filePath, uploaded_folder_path);
-        console.log(`decompressed ${fileName}`);
+        // console.log(`decompressed ${fileName}`);
 
         fs.copyFile(csv_template_path, duplicated_csv_template_path, (err) => {
           if (err) throw err;
-          console.log("bulk-upload-template was copied to destination");
+          //console.log("bulk-upload-template was copied to destination");
         });
 
         const tree = dirTree(uploaded_folder_path);

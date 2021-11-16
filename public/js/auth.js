@@ -12,7 +12,7 @@
       // console.log("token", access_token);
       localStorage.setItem("access_token", access_token);
 
-      console.log("local_token", local_token);
+      //  console.log("local_token", local_token);
       window.location.href =
         "https://formelo.stanbicibtcpension.com/bulk-import-test/csv-generator";
       // window.location.href = "http://localhost:8080/bulk-import-test/csv-generator";

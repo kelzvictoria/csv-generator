@@ -56,10 +56,10 @@ function checkForCSV(file_name) {
     fileExists //, "errorsExists", errorsExists
   );
 
-  console.log(
-    "csv",
-    `../${appPath}/generated-csv/${file_name.split(".")[0]}.csv`
-  );
+  // console.log(
+  //   "csv",
+  //   `../${appPath}/generated-csv/${file_name.split(".")[0]}.csv`
+  // );
 
   if (fileExists) {
     HideMessage(file_name);
@@ -171,8 +171,8 @@ fileInput.onchange = ({ target }) => {
     fileName = newFile.name;
     file = newFile;
 
-    console.log("fileName", fileName);
-    console.log("newFile", newFile);
+    // console.log("fileName", fileName);
+    // console.log("newFile", newFile);
 
     if (fileName.length >= 12) {
       let splitName = fileName.split(".");
@@ -190,13 +190,13 @@ function uploadFile(name, file) {
     .split("/")[1];
   let upload_file_path = `//${window.location.host}/${appPath}/upload-file`;
   errors_file_path = `../${appPath}/errors.json`;
-  console.log("errors_file_path", errors_file_path);
+  // console.log("errors_file_path", errors_file_path);
   //console.log("upload_file_path", upload_file_path);
   // console.log("changed input");
   // let timeStamp = new Date().getTime();
   // file.name = file.name + "-" + timeStamp;
 
-  console.log("file.name", file.name);
+  // console.log("file.name", file.name);
   let file_name = file.name;
   var formData = new FormData();
   formData.append("file", file);
@@ -265,7 +265,7 @@ function uploadFile(name, file) {
   });
 
   let token = localStorage.getItem("access_token");
-  console.log("token", token);
+  //console.log("token", token);
   formData.append("access_token", token);
 
   xhr.onload = function () {
@@ -380,5 +380,19 @@ function HideMessage(file_name) {
       // }
     }
   }, 3000);
+  return true;
+})();
+
+(function () {
+  //"use strict";
+  var timerHandle = setInterval(function () {
+    let local_token = localStorage.getItem("access_token");
+    if (!local_token) {
+      window.location.href =
+        "https://formelo.stanbicibtcpension.com/bulk-import-test/";
+    } else {
+      clearInterval(timerHandle);
+    }
+  }, 500);
   return true;
 })();
