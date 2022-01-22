@@ -56,7 +56,6 @@ When the csv file has been generated, the user is prompted to download the file 
 
 - [EJS](https://ejs.co/)
 - [Express.js](https://expressjs.com/)
-- [S3](https://aws.amazon.com/s3)
 
 <!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
 
