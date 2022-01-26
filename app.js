@@ -11,7 +11,6 @@ const empty = require("empty-folder");
 const dirTree = require("directory-tree");
 var stringify = require("csv-stringify");
 
-const auth = require("./auth");
 const utils = require("./app-utils");
 
 var session = require("express-session");
@@ -26,10 +25,7 @@ const {
 } = utils;
 
 var port = process.env["APP_PORT"] || 8080;
-var appPath =
-  process.env["APP_PATH"] ||
-  //(isProd ? "/tools" :
-  "/tools-test";
+var appPath = process.env["APP_PATH"] || "/tools-test";
 //);
 appPath = appPath.endsWith("/")
   ? appPath.substring(0, appPath.length - 1)
@@ -66,11 +62,7 @@ let duplicated_csv_template_path = path.join(
   "bulk-upload-file.csv"
 );
 
-let generated_csv_path = path.join(
-  filesStaticDataPath,
-  "generated-csv"
-  // "/generated-bulk-upload-csv.csv"
-);
+let generated_csv_path = path.join(filesStaticDataPath, "generated-csv");
 
 let err_path = path.join(staticDataPath, `errors.json`);
 
@@ -112,8 +104,6 @@ app.use(
 app.use(flash());
 app.use(express.static("public"));
 
-// Handler for parsing cookies
-
 // Handler for parsing "application/json" data
 app.use(express.json());
 
@@ -139,11 +129,7 @@ app.get(appPath, function (req, res) {
 });
 
 app.get(appPath + "/outstanding-docs", async (req, res) => {
-  //stanbicRealmToken = await auth.stanbicRealmToken;
-
-  //console.log("req.get('host')", req.get("host"));
   var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
-  //console.log("baseUrl", baseUrl);
   var redirect_uri = baseUrl + "progress";
 
   res.render(viewDataPath + "/index", {
@@ -170,26 +156,6 @@ app.get(appPath + "/progress", async (req, res) => {
 });
 
 app.get(appPath + "/csv-generator", async (req, res) => {
-  //demoRealmToken = await auth.demoRealmToken;
-  /* await empty(zipUploadFolder, false, (o) => {
-    if (o.error) console.error(o.error);
-  });
-
-  await empty(uploaded_folder_path, false, (o) => {
-    if (o.error) console.error(o.error);
-  });
-
-  await empty(path.join(staticDataPath, "generated-csv"), false, (o) => {
-    if (o.error) console.error(o.error);
-  }); */
-
-  /* fs.exists(err_path, function (exists) {
-    if (exists) {
-      fs.unlinkSync(err_path);
-    }
-
-  }); */
-
   var baseUrl = protocol + "://" + req.get("host") + appPath + "/";
   var redirect_uri = baseUrl + "progress";
   res.render(viewDataPath + "/csvGenerator", {
@@ -213,7 +179,6 @@ router.post("/upload-file", async (req, res) => {
 
   //https://www.section.io/engineering-education/uploading-files-using-formidable-nodejs/
   var form = new formidable.IncomingForm();
-  //console.log("form", form);
   fileUploadErrorArr = [];
 
   const buildErrObj = (folder_name, pin, error) => {
@@ -240,13 +205,6 @@ router.post("/upload-file", async (req, res) => {
         return;
       }
     } else {
-      // value_from_user_details_obj =
-      //   user_details_obj.media.identity.passport_photo_source_url.toLowerCase();
-
-      // if (value_from_user_details_obj) {
-      //   val = value_from_user_details_obj;
-      //   return val;
-      // }
       buildErrObj(pin, col, fileN);
       return;
     }
@@ -254,7 +212,6 @@ router.post("/upload-file", async (req, res) => {
 
   form.multiples = false;
   form.uploadDir = zipUploadFolder;
-  //console.log("form", form);
 
   try {
     form.parse(req, async function (err, fields, files) {
@@ -324,18 +281,18 @@ router.post("/upload-file", async (req, res) => {
 
       try {
         await decompress(filePath, uploaded_folder_path);
-        // console.log(`decompressed ${fileName}`);
+        console.log(`decompressed ${fileName}`);
 
         fs.copyFile(csv_template_path, duplicated_csv_template_path, (err) => {
           if (err) throw err;
-          //console.log("bulk-upload-template was copied to destination");
+          console.log("bulk-upload-template was copied to destination");
         });
 
         const tree = dirTree(uploaded_folder_path);
         let folder = tree.children.length
           ? tree.children.filter((c) => c.name === fileName)[0]
           : undefined;
-        // console.log("folder", folder);
+        console.log("folder", folder);
         uploadedFolder = folder.path;
         let folder_content = folder ? folder.children : undefined;
         // console.log("folder_content", folder_content);

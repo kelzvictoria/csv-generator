@@ -109,7 +109,10 @@ function FileExists(urlToFile) {
     if (xhr.status == "404") {
       console.log("File doesn't exist");
       return false;
-    } else {
+    }  else if (xhr.status == "502") {
+      is_network_error = true;
+      return false;
+    }else {
       console.log("xhr responseText", xhr.responseText);
       console.log("File exists");
       return true;

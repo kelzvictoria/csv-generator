@@ -1,8 +1,5 @@
 <div id="top"></div>
 
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -90,6 +87,12 @@ When the csv file has been generated, the user is prompted to download the file 
 4. Fill in the missing env values with the appropriate credentials. Ask your team-lead for help in getting these values from the server.
 
    It is important to obtain these values before running the app if not certain requests cannot be granted through the app.
+
+5. Create a mountable directory /uploads with the following subdirectories in your root directory:
+
+  - /files
+  - /generated-csv
+  - /uploaded-folder
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
